@@ -1,0 +1,20 @@
+{
+  "name": "めいめいっち",
+  "short_name": "めいめいっち",
+  "description": "やさしいブラウザ育成ゲーム、めいめいっち。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff7dc",
+  "theme_color": "#ffd6e7",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%23ffd6e7'/%3E%3Ccircle cx='256' cy='270' r='156' fill='%23fffdf5'/%3E%3Ccircle cx='202' cy='246' r='18' fill='%235b4b4f'/%3E%3Ccircle cx='310' cy='246' r='18' fill='%235b4b4f'/%3E%3Cpath d='M203 318c28 34 78 34 106 0' fill='none' stroke='%235b4b4f' stroke-width='24' stroke-linecap='round'/%3E%3Ccircle cx='157' cy='293' r='24' fill='%23ff94bd' opacity='.55'/%3E%3Ccircle cx='355' cy='293' r='24' fill='%23ff94bd' opacity='.55'/%3E%3Cpath d='M196 126c20-50 100-50 120 0' fill='none' stroke='%23ffe28a' stroke-width='36' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
