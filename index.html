@@ -602,34 +602,21 @@
 
     .trace-dot {
       align-items: center;
-      background: #b8b1bc;
+      background: #ffcf24;
       border: 3px solid #fff;
       border-radius: 50%;
       box-shadow: 0 3px 7px rgba(94, 68, 111, 0.16);
       color: #fff;
       display: flex;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       font-weight: 900;
-      height: 22px;
+      height: 28px;
       justify-content: center;
       pointer-events: none;
       position: absolute;
       transform: translate(-50%, -50%);
-      width: 22px;
-      z-index: 2;
-    }
-
-    .trace-dot.next {
-      background: #ffcf24;
-      transform: translate(-50%, -50%) scale(1.22);
-    }
-
-    .trace-dot.done {
-      background: #7ddd2f;
-    }
-
-    .trace-dot.goal {
-      background: #56c8ff;
+      width: 28px;
+      z-index: 4;
     }
 
     .trace-line-layer {
@@ -641,10 +628,28 @@
 
     .trace-line-layer path {
       fill: none;
-      stroke: #4b3d55;
       stroke-linecap: round;
       stroke-linejoin: round;
-      stroke-width: 18;
+    }
+
+    .guide-stroke {
+      stroke: rgba(95, 80, 108, 0.22);
+      stroke-width: 13;
+    }
+
+    .guide-stroke.is-current {
+      stroke: rgba(85, 177, 235, 0.58);
+      stroke-width: 17;
+    }
+
+    .guide-stroke.is-done {
+      stroke: rgba(123, 221, 47, 0.45);
+      stroke-width: 15;
+    }
+
+    .drawn-stroke {
+      stroke: #3f3449;
+      stroke-width: 15;
     }
 
     .trace-word {
@@ -931,6 +936,7 @@
 
     let traceTarget = null;
     let traceLetterIndex = 0;
+    let traceStrokeIndex = 0;
     let tracePointIndex = 0;
     let isTracing = false;
     let currentPath = null;
@@ -1061,6 +1067,7 @@
       elements.traceProgress.style.width = "0%";
       traceTarget = null;
       traceLetterIndex = 0;
+      traceStrokeIndex = 0;
       tracePointIndex = 0;
       isTracing = false;
       currentPath = null;
@@ -1091,6 +1098,7 @@
     function startTrace(food) {
       traceTarget = food;
       traceLetterIndex = 0;
+      traceStrokeIndex = 0;
       tracePointIndex = 0;
       isTracing = false;
       currentPath = null;
@@ -1103,89 +1111,157 @@
       showTraceLetter();
     }
 
-    function getTracePoints(letter) {
+    function getTraceStrokes(letter) {
       const maps = {
-        "お": [[26, 32], [55, 28], [48, 50], [34, 62], [50, 72], [65, 58], [70, 36]],
-        "に": [[32, 28], [28, 72], [48, 34], [70, 34], [50, 66], [72, 66]],
-        "ぎ": [[28, 28], [70, 25], [38, 43], [74, 40], [52, 55], [46, 76]],
-        "り": [[38, 26], [35, 58], [62, 24], [64, 48], [52, 76]],
-        "ん": [[30, 72], [42, 46], [54, 28], [58, 58], [72, 64]],
-        "ご": [[30, 35], [70, 35], [38, 66], [68, 66]],
-        "チ": [[28, 28], [72, 24], [50, 26], [50, 74], [34, 48], [74, 48]],
-        "ョ": [[36, 40], [66, 40], [66, 62], [38, 62]],
-        "コ": [[32, 34], [70, 34], [70, 66], [32, 66]],
-        "レ": [[38, 28], [38, 72], [68, 54]],
-        "ー": [[28, 50], [72, 50]],
-        "ト": [[38, 24], [38, 76], [40, 42], [72, 60]]
+        "お": [
+          [[28, 34], [70, 34]],
+          [[48, 22], [48, 44], [36, 58], [38, 72], [54, 76], [67, 66]],
+          [[64, 30], [76, 40], [74, 54]]
+        ],
+        "に": [
+          [[32, 24], [28, 46], [30, 72]],
+          [[50, 34], [72, 34]],
+          [[48, 66], [74, 66]]
+        ],
+        "ぎ": [
+          [[27, 30], [68, 27]],
+          [[31, 43], [74, 40]],
+          [[48, 23], [55, 45], [45, 64], [56, 78]],
+          [[71, 23], [76, 29]],
+          [[80, 34], [85, 40]]
+        ],
+        "り": [
+          [[38, 24], [36, 56]],
+          [[64, 22], [65, 45], [55, 72]]
+        ],
+        "ん": [
+          [[30, 72], [42, 48], [55, 28], [58, 58], [72, 64]]
+        ],
+        "ご": [
+          [[30, 36], [68, 36]],
+          [[38, 66], [70, 66]],
+          [[73, 26], [78, 32]],
+          [[81, 38], [86, 44]]
+        ],
+        "チ": [
+          [[36, 25], [63, 32]],
+          [[29, 48], [75, 48]],
+          [[54, 30], [52, 54], [42, 75]]
+        ],
+        "ョ": [
+          [[36, 40], [66, 40]],
+          [[66, 40], [66, 64]],
+          [[38, 64], [66, 64]]
+        ],
+        "コ": [
+          [[32, 34], [70, 34], [70, 66]],
+          [[32, 66], [70, 66]]
+        ],
+        "レ": [
+          [[38, 26], [38, 72], [68, 54]]
+        ],
+        "ー": [
+          [[28, 50], [72, 50]]
+        ],
+        "ト": [
+          [[38, 24], [38, 76]],
+          [[40, 42], [72, 60]]
+        ]
       };
 
-      return maps[letter] || [[30, 30], [70, 30], [50, 52], [32, 72], [70, 72]];
+      return maps[letter] || [[[30, 30], [70, 30], [50, 52], [32, 72], [70, 72]]];
+    }
+
+    function pointsToPath(points) {
+      return points.map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x} ${y}`).join(" ");
     }
 
     function showTraceLetter() {
       const letters = [...traceTarget.traceWord];
       const letter = letters[traceLetterIndex];
-      const points = getTracePoints(letter);
+      traceStrokeIndex = 0;
       tracePointIndex = 0;
       currentPath = null;
       elements.traceBigLetter.textContent = letter;
       elements.traceCurrent.textContent = traceLetterIndex + 1;
       elements.traceCount.textContent = `/ ${letters.length}`;
-      elements.traceHelp.textContent = `「${letter}」を なぞってね。`;
+      elements.traceHelp.textContent = `「${letter}」の 1かくめを なぞってね。`;
       elements.traceBoard.setAttribute("aria-label", `${letter}をなぞる`);
+      renderTraceGuide();
+      updateTraceProgress();
+    }
+
+    function renderTraceGuide() {
+      const letter = [...traceTarget.traceWord][traceLetterIndex];
+      const strokes = getTraceStrokes(letter);
       elements.traceLineLayer.innerHTML = "";
       elements.traceDots.innerHTML = "";
 
-      points.forEach(([x, y], index) => {
-        const dot = document.createElement("div");
-        dot.className = "trace-dot";
-        if (index === 0) dot.classList.add("next");
-        if (index === points.length - 1) dot.classList.add("goal");
-        dot.style.left = `${x}%`;
-        dot.style.top = `${y}%`;
-        dot.textContent = index === 0 ? "1" : "";
-        elements.traceDots.appendChild(dot);
+      strokes.forEach((stroke, index) => {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", pointsToPath(stroke));
+        path.classList.add("guide-stroke");
+        if (index < traceStrokeIndex) path.classList.add("is-done");
+        if (index === traceStrokeIndex) path.classList.add("is-current");
+        elements.traceLineLayer.appendChild(path);
       });
 
-      updateTraceProgress();
+      const currentStroke = strokes[traceStrokeIndex];
+      const [startX, startY] = currentStroke[0];
+      const dot = document.createElement("div");
+      dot.className = "trace-dot";
+      dot.style.left = `${startX}%`;
+      dot.style.top = `${startY}%`;
+      dot.textContent = traceStrokeIndex + 1;
+      elements.traceDots.appendChild(dot);
     }
 
     function handleTracePoint(clientX, clientY) {
       if (!traceTarget) return;
-      const points = getTracePoints([...traceTarget.traceWord][traceLetterIndex]);
+      const strokes = getTraceStrokes([...traceTarget.traceWord][traceLetterIndex]);
+      const stroke = strokes[traceStrokeIndex];
       const boardRect = elements.traceBoard.getBoundingClientRect();
       const x = ((clientX - boardRect.left) / boardRect.width) * 100;
       const y = ((clientY - boardRect.top) / boardRect.height) * 100;
-      const [targetX, targetY] = points[tracePointIndex];
+      const [targetX, targetY] = stroke[tracePointIndex];
       const distance = Math.hypot(x - targetX, y - targetY);
 
+      if (distance > 15) return;
+
       appendTraceLine(x, y);
-
-      if (distance > 12) return;
-
-      const dots = [...elements.traceDots.querySelectorAll(".trace-dot")];
-      dots[tracePointIndex].classList.remove("next");
-      dots[tracePointIndex].classList.add("done");
       tracePointIndex += 1;
 
-      if (tracePointIndex < points.length) {
-        dots[tracePointIndex].classList.add("next");
-        dots[tracePointIndex].textContent = String(tracePointIndex + 1);
-        return;
+      if (tracePointIndex >= stroke.length) {
+        finishTraceStroke();
       }
-
-      finishTraceLetter();
     }
 
     function appendTraceLine(x, y) {
       if (!currentPath) {
         currentPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        currentPath.classList.add("drawn-stroke");
         currentPath.setAttribute("d", `M ${x} ${y}`);
         elements.traceLineLayer.appendChild(currentPath);
         return;
       }
 
       currentPath.setAttribute("d", `${currentPath.getAttribute("d")} L ${x} ${y}`);
+    }
+
+    function finishTraceStroke() {
+      const strokes = getTraceStrokes([...traceTarget.traceWord][traceLetterIndex]);
+      traceStrokeIndex += 1;
+      tracePointIndex = 0;
+      currentPath = null;
+      isTracing = false;
+
+      if (traceStrokeIndex >= strokes.length) {
+        finishTraceLetter();
+        return;
+      }
+
+      elements.traceHelp.textContent = `「${[...traceTarget.traceWord][traceLetterIndex]}」の ${traceStrokeIndex + 1}かくめを なぞってね。`;
+      renderTraceGuide();
     }
 
     function finishTraceLetter() {
@@ -1256,6 +1332,7 @@
     });
     elements.traceBoard.addEventListener("pointerdown", (event) => {
       isTracing = true;
+      currentPath = null;
       elements.traceBoard.setPointerCapture(event.pointerId);
       handleTracePoint(event.clientX, event.clientY);
     });
