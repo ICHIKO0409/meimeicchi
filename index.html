@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#ffd6e7">
+  <meta name="theme-color" content="#48b9ef">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="めいめいっち">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -13,16 +13,17 @@
   <style>
     :root {
       color-scheme: light;
-      --bg: #fff7dc;
-      --panel: #fffdf5;
-      --pink: #ffd6e7;
-      --pink-strong: #ff94bd;
-      --mint: #c9f4df;
-      --sky: #ccecff;
-      --sun: #ffe28a;
-      --ink: #5b4b4f;
-      --muted: #8a777d;
-      --shadow: 0 14px 30px rgba(123, 86, 96, 0.15);
+      --shell: #48b9ef;
+      --shell-dark: #0b86cc;
+      --shell-light: #b8ecff;
+      --screen: #f7fff9;
+      --screen-border: #543a77;
+      --pink: #ff8ac4;
+      --yellow: #fff05a;
+      --orange: #ff7a2f;
+      --ink: #3c2b54;
+      --muted: #6d5a7c;
+      --shadow: 0 24px 50px rgba(22, 88, 137, 0.25);
     }
 
     * {
@@ -39,127 +40,254 @@
     body {
       align-items: center;
       background:
-        radial-gradient(circle at 18% 16%, rgba(255, 214, 231, 0.8), transparent 28%),
-        radial-gradient(circle at 82% 14%, rgba(204, 236, 255, 0.85), transparent 30%),
-        linear-gradient(180deg, #fff7dc 0%, #fff0f5 100%);
+        linear-gradient(90deg, rgba(255, 138, 196, 0.12) 1px, transparent 1px),
+        linear-gradient(rgba(72, 185, 239, 0.12) 1px, transparent 1px),
+        #fffdf8;
+      background-size: 28px 28px;
       color: var(--ink);
       display: flex;
       font-family: "Hiragino Maru Gothic ProN", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
       justify-content: center;
-      padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+      padding: max(14px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
       text-align: center;
       touch-action: manipulation;
     }
 
     main {
+      background:
+        radial-gradient(circle at 32% 12%, rgba(255, 255, 255, 0.92) 0 5%, transparent 18%),
+        radial-gradient(circle at 72% 22%, rgba(255, 255, 255, 0.32), transparent 22%),
+        linear-gradient(145deg, var(--shell-light) 0%, var(--shell) 42%, var(--shell-dark) 100%);
+      border: 5px solid rgba(255, 255, 255, 0.9);
+      border-radius: 48% 48% 44% 44% / 56% 56% 43% 43%;
+      box-shadow: var(--shadow), inset 0 -16px 28px rgba(0, 83, 145, 0.18), inset 0 18px 28px rgba(255, 255, 255, 0.5);
       display: grid;
-      gap: 14px;
+      gap: 10px;
       max-width: 430px;
-      min-height: min(760px, 100svh - 36px);
-      width: 100%;
+      min-height: min(760px, calc(100svh - 28px));
+      overflow: hidden;
+      padding: 28px 24px 26px;
+      position: relative;
+      width: min(100%, 430px);
+    }
+
+    main::before {
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.42), transparent 62%);
+      border-radius: inherit;
+      content: "";
+      inset: 10px 18px 42px;
+      pointer-events: none;
+      position: absolute;
+    }
+
+    header,
+    .pet-area,
+    .stats,
+    .actions,
+    .info,
+    .sticker {
+      position: relative;
+      z-index: 1;
     }
 
     header {
+      align-items: center;
+      display: grid;
+      justify-items: center;
+      min-height: 86px;
       padding-top: 4px;
     }
 
     h1 {
-      font-size: clamp(2.3rem, 13vw, 3.4rem);
+      background: var(--yellow);
+      border: 5px solid #2b2340;
+      box-shadow: 0 6px 0 rgba(255, 122, 47, 0.95), 0 10px 0 rgba(43, 35, 64, 0.22);
+      color: #2b2340;
+      display: inline-block;
+      font-size: clamp(2.05rem, 12vw, 3.1rem);
       line-height: 1;
       margin: 0;
-      text-shadow: 0 4px 0 rgba(255, 255, 255, 0.85);
+      padding: 7px 16px 10px;
+      text-shadow: 2px 2px 0 #fff;
+      transform: rotate(-3deg);
     }
 
     .subtitle {
-      color: var(--muted);
-      font-size: 1rem;
-      font-weight: 700;
-      margin: 8px 0 0;
+      background: #ff8ac4;
+      border: 3px solid #fff;
+      border-radius: 999px;
+      box-shadow: 0 5px 0 rgba(43, 35, 64, 0.16);
+      color: #fff;
+      font-size: 0.92rem;
+      font-weight: 900;
+      margin: 7px 0 0;
+      padding: 4px 12px;
     }
+
+    .sticker {
+      align-items: center;
+      display: flex;
+      font-size: 1.35rem;
+      font-weight: 900;
+      justify-content: center;
+      pointer-events: none;
+      position: absolute;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .sticker.s1 { left: 38px; top: 118px; transform: rotate(-18deg); }
+    .sticker.s2 { right: 42px; top: 116px; transform: rotate(18deg); }
+    .sticker.s3 { left: 28px; top: 252px; transform: rotate(12deg); }
+    .sticker.s4 { right: 30px; top: 256px; transform: rotate(-14deg); }
+    .sticker.s5 { left: 58px; bottom: 150px; transform: rotate(-22deg); }
+    .sticker.s6 { right: 62px; bottom: 154px; transform: rotate(19deg); }
 
     .pet-area {
       align-content: center;
-      background: var(--panel);
-      border: 3px solid #fff;
-      border-radius: 28px;
-      box-shadow: var(--shadow);
+      background:
+        linear-gradient(90deg, rgba(119, 189, 255, 0.28) 1px, transparent 1px),
+        linear-gradient(rgba(255, 138, 196, 0.24) 1px, transparent 1px),
+        linear-gradient(180deg, #f9fffb 0%, #e8fff8 48%, #ffe2ff 100%);
+      background-size: 24px 24px;
+      border: 7px solid var(--screen-border);
+      border-radius: 22px;
+      box-shadow: 0 0 0 5px #ffffff, 0 9px 0 rgba(43, 35, 64, 0.24), inset 0 0 0 4px rgba(113, 87, 161, 0.14);
       display: grid;
-      gap: 12px;
-      min-height: 310px;
+      gap: 7px;
+      justify-self: center;
+      min-height: 245px;
       overflow: hidden;
-      padding: 18px 16px;
-      position: relative;
-    }
-
-    .pet-area::before,
-    .pet-area::after {
-      background: rgba(255, 226, 138, 0.55);
-      border-radius: 999px;
-      content: "";
-      height: 110px;
-      position: absolute;
-      width: 110px;
+      padding: 12px 12px 10px;
+      width: min(100%, 318px);
     }
 
     .pet-area::before {
-      left: -44px;
-      top: -38px;
+      background:
+        linear-gradient(#bff4ff, #bff4ff) left 28px top 44px / 54px 7px no-repeat,
+        linear-gradient(#bff4ff, #bff4ff) right 28px top 44px / 54px 7px no-repeat,
+        linear-gradient(#9b82d6, #9b82d6) center top 24px / 8px 52px no-repeat;
+      content: "";
+      inset: 0;
+      opacity: 0.72;
+      pointer-events: none;
+      position: absolute;
     }
 
     .pet-area::after {
-      bottom: -48px;
-      right: -36px;
+      background: radial-gradient(circle, #ff9b1e 0 44%, #fff05a 45% 57%, #ff6a2a 58% 100%);
+      border-radius: 50%;
+      box-shadow: 10px -6px 0 #ff6a2a, -7px 8px 0 #ffbe39;
+      content: "";
+      height: 38px;
+      opacity: 0.9;
+      position: absolute;
+      right: 32px;
+      top: 70px;
+      width: 38px;
+    }
+
+    .stage-name {
+      background: #ffffff;
+      border: 3px solid #7e65ba;
+      border-radius: 999px;
+      color: #5a3c91;
+      display: inline-block;
+      font-size: 0.88rem;
+      font-weight: 900;
+      justify-self: center;
+      padding: 4px 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pet-wrap {
+      align-items: center;
+      display: grid;
+      justify-items: center;
+      min-height: 116px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .floaty {
+      animation: floaty 3.2s ease-in-out infinite;
+    }
+
+    .bounce {
+      animation: bounce 360ms ease;
     }
 
     .pet {
-      font-size: clamp(6.8rem, 34vw, 9rem);
+      filter: drop-shadow(0 7px 0 rgba(85, 66, 126, 0.22));
+      font-size: clamp(5.1rem, 25vw, 7.4rem);
       line-height: 1;
       position: relative;
       z-index: 1;
     }
 
+    .pet-image {
+      display: none;
+      image-rendering: pixelated;
+      max-height: 128px;
+      max-width: min(62vw, 210px);
+      object-fit: contain;
+    }
+
+    .has-image .pet-image {
+      display: block;
+    }
+
+    .has-image .pet {
+      display: none;
+    }
+
     .speech {
       align-self: center;
-      background: #ffffff;
-      border: 3px solid var(--pink);
-      border-radius: 20px;
-      box-shadow: 0 8px 18px rgba(123, 86, 96, 0.1);
-      font-size: clamp(1.08rem, 5vw, 1.35rem);
-      font-weight: 800;
-      line-height: 1.4;
+      background: rgba(255, 255, 255, 0.9);
+      border: 3px solid #8bd8ff;
+      border-radius: 14px;
+      box-shadow: 0 5px 0 rgba(83, 58, 119, 0.15);
+      font-size: clamp(0.95rem, 4.2vw, 1.08rem);
+      font-weight: 900;
+      line-height: 1.35;
       margin: 0 auto;
-      max-width: 300px;
-      padding: 12px 16px;
+      max-width: 268px;
+      padding: 8px 10px;
       position: relative;
       z-index: 1;
     }
 
     .stats {
       display: grid;
-      gap: 10px;
+      gap: 6px;
+      grid-template-columns: repeat(3, 1fr);
+      justify-self: center;
+      width: min(100%, 326px);
     }
 
     .stat {
-      background: rgba(255, 255, 255, 0.78);
-      border: 2px solid rgba(255, 255, 255, 0.9);
-      border-radius: 18px;
-      box-shadow: 0 8px 20px rgba(123, 86, 96, 0.08);
-      padding: 10px 12px 12px;
+      background: rgba(255, 255, 255, 0.86);
+      border: 3px solid rgba(255, 255, 255, 0.95);
+      border-radius: 14px;
+      box-shadow: 0 6px 0 rgba(0, 83, 145, 0.16);
+      padding: 7px 7px 8px;
     }
 
     .stat-top {
       align-items: center;
       display: flex;
-      font-size: 1.05rem;
+      font-size: 0.78rem;
       font-weight: 900;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 5px;
+      white-space: nowrap;
     }
 
     .meter {
-      background: #f4e9e2;
+      background: #d9f2ff;
+      border: 2px solid #fff;
       border-radius: 999px;
-      height: 18px;
+      height: 13px;
       overflow: hidden;
     }
 
@@ -169,82 +297,117 @@
       transition: width 220ms ease;
     }
 
-    .fill.energy {
-      background: linear-gradient(90deg, #c9f4df, #75dca5);
-    }
-
-    .fill.hunger {
-      background: linear-gradient(90deg, #ffe28a, #ffbd66);
-    }
-
-    .fill.mood {
-      background: linear-gradient(90deg, #ffd6e7, #ff94bd);
-    }
+    .fill.energy { background: linear-gradient(90deg, #9cf58c, #30d587); }
+    .fill.hunger { background: linear-gradient(90deg, #fff05a, #ffb02e); }
+    .fill.mood { background: linear-gradient(90deg, #ff9cce, #ff5fa8); }
 
     .actions {
       display: grid;
-      gap: 10px;
+      gap: 13px;
       grid-template-columns: repeat(3, 1fr);
+      justify-self: center;
+      margin-top: 2px;
+      width: min(100%, 286px);
     }
 
     button {
+      align-items: center;
       appearance: none;
-      background: #fff;
-      border: 0;
-      border-radius: 20px;
-      box-shadow: 0 8px 0 rgba(123, 86, 96, 0.16), 0 12px 22px rgba(123, 86, 96, 0.1);
-      color: var(--ink);
+      aspect-ratio: 1;
+      background: radial-gradient(circle at 34% 28%, #fffba4 0 24%, var(--yellow) 25% 64%, #f8c621 65% 100%);
+      border: 4px solid #2b2340;
+      border-radius: 50%;
+      box-shadow: 0 7px 0 rgba(43, 35, 64, 0.32), inset 0 6px 10px rgba(255, 255, 255, 0.65);
+      color: #2b2340;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
       font-family: inherit;
-      font-size: clamp(0.98rem, 4.6vw, 1.18rem);
+      font-size: clamp(0.76rem, 3.7vw, 0.95rem);
       font-weight: 900;
-      min-height: 78px;
-      padding: 10px 6px;
+      justify-content: center;
+      min-height: 0;
+      padding: 7px 4px;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
       transition: transform 90ms ease, box-shadow 90ms ease;
     }
 
     button:active {
-      box-shadow: 0 3px 0 rgba(123, 86, 96, 0.18), 0 7px 14px rgba(123, 86, 96, 0.1);
+      box-shadow: 0 2px 0 rgba(43, 35, 64, 0.34), inset 0 5px 8px rgba(255, 255, 255, 0.5);
       transform: translateY(5px);
     }
 
     .icon {
       display: block;
-      font-size: 1.9rem;
-      margin-bottom: 4px;
+      font-size: 1.55rem;
+      line-height: 1;
+      margin-bottom: 2px;
     }
 
     .info {
-      background: rgba(255, 255, 255, 0.7);
-      border: 2px dashed rgba(255, 148, 189, 0.55);
+      align-self: end;
+      background: rgba(255, 255, 255, 0.82);
+      border: 3px dashed rgba(255, 255, 255, 0.98);
       border-radius: 18px;
       color: var(--muted);
-      font-size: 0.94rem;
-      font-weight: 800;
-      line-height: 1.55;
-      padding: 10px 14px;
+      font-size: 0.82rem;
+      font-weight: 900;
+      line-height: 1.45;
+      margin: 2px auto 0;
+      padding: 8px 12px;
+      width: min(100%, 322px);
     }
 
-    .online {
-      color: #598f70;
+    .online { color: #146c54; }
+    .offline { color: #a44e30; }
+
+    @keyframes floaty {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
     }
 
-    .offline {
-      color: #b06b48;
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      38% { transform: translateY(-16px) scale(1.08); }
+      68% { transform: translateY(4px) scale(0.98); }
     }
 
-    @media (max-width: 360px) {
-      body {
-        padding-left: 10px;
-        padding-right: 10px;
+    @media (max-width: 380px) {
+      main {
+        gap: 8px;
+        padding: 24px 18px 22px;
+      }
+
+      header {
+        min-height: 78px;
+      }
+
+      .pet-area {
+        min-height: 232px;
+        width: min(100%, 300px);
+      }
+
+      .stats {
+        gap: 5px;
+      }
+
+      .stat {
+        padding-left: 5px;
+        padding-right: 5px;
+      }
+
+      .stat-top {
+        font-size: 0.71rem;
       }
 
       .actions {
-        gap: 8px;
+        gap: 10px;
+        width: min(100%, 250px);
       }
 
-      button {
-        border-radius: 16px;
+      .sticker.s3,
+      .sticker.s4 {
+        display: none;
       }
     }
   </style>
@@ -256,8 +419,19 @@
       <p class="subtitle">きょうも なかよく あそぼう</p>
     </header>
 
+    <span class="sticker s1">✦</span>
+    <span class="sticker s2">★</span>
+    <span class="sticker s3">♡</span>
+    <span class="sticker s4">♪</span>
+    <span class="sticker s5">♥</span>
+    <span class="sticker s6">✦</span>
+
     <section class="pet-area" aria-live="polite">
-      <div class="pet" id="petFace" aria-label="めいめいっち">😊</div>
+      <div class="stage-name" id="stageName">たまご</div>
+      <div class="pet-wrap floaty" id="petWrap">
+        <img class="pet-image" id="petImage" alt="めいめいっち">
+        <div class="pet" id="petFace" aria-label="めいめいっち">🥚</div>
+      </div>
       <p class="speech" id="message">こんにちは。なにしてあそぶ？</p>
     </section>
 
@@ -284,6 +458,7 @@
 
     <section class="info">
       <div>iPhoneのホーム画面に追加してね。</div>
+      <div id="careGuide">あと 3かい おせわで せいちょうするよ。</div>
       <div id="networkState" class="online">オンラインです。オフラインでもあそべます。</div>
     </section>
   </main>
@@ -294,15 +469,67 @@
       energy: 80,
       hunger: 80,
       mood: 80,
+      stage: "egg",
+      careCount: 0,
       lastPlayed: Date.now()
     };
 
-    const faces = {
-      happy: "😊",
-      hungry: "🥺",
-      tired: "😴",
-      sad: "😢",
-      great: "🥰"
+    const stages = {
+      egg: {
+        name: "たまご",
+        emoji: "🥚",
+        image: "assets/egg.png",
+        next: 3
+      },
+      baby: {
+        name: "あかちゃん",
+        emoji: "🐣",
+        image: "assets/baby.png",
+        next: 10
+      },
+      child: {
+        name: "こども",
+        emoji: "😊",
+        image: "assets/child.png",
+        next: 20
+      },
+      adult: {
+        name: "おとな",
+        emoji: "🥰",
+        image: "assets/adult.png",
+        next: null
+      }
+    };
+
+    const moodFaces = {
+      egg: {
+        happy: "🥚",
+        hungry: "🥚",
+        tired: "🥚",
+        sad: "🥚",
+        great: "🥚"
+      },
+      baby: {
+        happy: "🐣",
+        hungry: "🥺",
+        tired: "😴",
+        sad: "😢",
+        great: "🥰"
+      },
+      child: {
+        happy: "😊",
+        hungry: "🥺",
+        tired: "😴",
+        sad: "😢",
+        great: "🥰"
+      },
+      adult: {
+        happy: "😄",
+        hungry: "🥺",
+        tired: "😴",
+        sad: "😢",
+        great: "🤩"
+      }
     };
 
     const messages = {
@@ -313,11 +540,15 @@
       tired: "ちょっと ねむいよ。",
       sad: "なでなで してほしいな。",
       great: "とっても うれしいよ。",
-      hello: "こんにちは。なにしてあそぶ？"
+      hello: "こんにちは。なにしてあそぶ？",
+      grown: "めいめいっちが成長した！"
     };
 
     const elements = {
       face: document.querySelector("#petFace"),
+      image: document.querySelector("#petImage"),
+      petWrap: document.querySelector("#petWrap"),
+      stageName: document.querySelector("#stageName"),
       message: document.querySelector("#message"),
       energyText: document.querySelector("#energyText"),
       hungerText: document.querySelector("#hungerText"),
@@ -325,6 +556,7 @@
       energyBar: document.querySelector("#energyBar"),
       hungerBar: document.querySelector("#hungerBar"),
       moodBar: document.querySelector("#moodBar"),
+      careGuide: document.querySelector("#careGuide"),
       networkState: document.querySelector("#networkState")
     };
 
@@ -346,6 +578,8 @@
           energy: clamp(saved.energy - hoursAway * 2),
           hunger: clamp(saved.hunger - hoursAway * 3),
           mood: clamp(saved.mood - hoursAway * 2),
+          stage: getStageForCareCount(saved.careCount || 0),
+          careCount: saved.careCount || 0,
           lastPlayed: Date.now()
         };
       } catch {
@@ -355,6 +589,20 @@
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, lastPlayed: Date.now() }));
+    }
+
+    function getStageForCareCount(careCount) {
+      if (careCount >= 20) return "adult";
+      if (careCount >= 10) return "child";
+      if (careCount >= 3) return "baby";
+      return "egg";
+    }
+
+    function updateStage() {
+      const nextStage = getStageForCareCount(state.careCount);
+      const grew = nextStage !== state.stage;
+      state.stage = nextStage;
+      return grew;
     }
 
     function getMood() {
@@ -367,8 +615,18 @@
 
     function render(customMessage) {
       const mood = getMood();
-      elements.face.textContent = faces[mood];
+      const stage = stages[state.stage] || stages.egg;
+      elements.stageName.textContent = stage.name;
+      elements.face.textContent = (moodFaces[state.stage] || moodFaces.egg)[mood] || stage.emoji;
       elements.message.textContent = customMessage || messages[mood] || messages.hello;
+      elements.petWrap.classList.remove("has-image");
+      elements.image.onload = () => {
+        elements.petWrap.classList.add("has-image");
+      };
+      elements.image.onerror = () => {
+        elements.petWrap.classList.remove("has-image");
+      };
+      elements.image.src = stage.image;
 
       elements.energyText.textContent = state.energy;
       elements.hungerText.textContent = state.hunger;
@@ -376,6 +634,21 @@
       elements.energyBar.style.width = `${state.energy}%`;
       elements.hungerBar.style.width = `${state.hunger}%`;
       elements.moodBar.style.width = `${state.mood}%`;
+      elements.careGuide.textContent = getCareGuideText(stage);
+    }
+
+    function getCareGuideText(stage) {
+      if (stage.next === null) {
+        return `おせわ ${state.careCount}かい。りっぱな おとなだよ。`;
+      }
+
+      return `あと ${stage.next - state.careCount}かい おせわで せいちょうするよ。`;
+    }
+
+    function bouncePet() {
+      elements.petWrap.classList.remove("bounce");
+      void elements.petWrap.offsetWidth;
+      elements.petWrap.classList.add("bounce");
     }
 
     function doAction(action) {
@@ -397,8 +670,11 @@
         state.mood = clamp(state.mood + 4);
       }
 
+      state.careCount += 1;
+      const grew = updateStage();
       saveState();
-      render(messages[action]);
+      render(grew ? messages.grown : messages[action]);
+      bouncePet();
     }
 
     function updateNetworkState() {
@@ -413,6 +689,12 @@
 
     document.querySelectorAll("button[data-action]").forEach((button) => {
       button.addEventListener("click", () => doAction(button.dataset.action));
+    });
+
+    elements.petWrap.addEventListener("animationend", (event) => {
+      if (event.animationName === "bounce") {
+        elements.petWrap.classList.remove("bounce");
+      }
     });
 
     window.addEventListener("online", updateNetworkState);
