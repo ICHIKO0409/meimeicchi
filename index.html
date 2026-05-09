@@ -454,6 +454,10 @@
       grid-template-columns: repeat(3, 1fr);
     }
 
+    .food-grid.is-hidden {
+      display: none;
+    }
+
     .food-option,
     .trace-close {
       aspect-ratio: auto;
@@ -534,6 +538,117 @@
       height: 100%;
       transition: width 160ms ease;
       width: 0%;
+    }
+
+
+    .trace-status {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .trace-badge {
+      align-items: center;
+      background: #72d7ff;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(94, 68, 111, 0.12);
+      color: #fff;
+      display: inline-flex;
+      font-size: 1.1rem;
+      font-weight: 900;
+      height: 40px;
+      justify-content: center;
+      width: 40px;
+    }
+
+    .trace-count {
+      color: #7b6b86;
+      font-size: 1.35rem;
+      font-weight: 900;
+    }
+
+    .trace-board {
+      background:
+        linear-gradient(90deg, transparent calc(50% - 1px), rgba(103, 193, 236, 0.36) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+        linear-gradient(180deg, transparent calc(50% - 1px), rgba(103, 193, 236, 0.36) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+        #e9fbff;
+      border: 4px solid #aee8ff;
+      border-radius: 18px;
+      height: min(74vw, 320px);
+      margin: 0 auto;
+      max-height: 320px;
+      overflow: hidden;
+      position: relative;
+      touch-action: none;
+      user-select: none;
+      width: min(100%, 320px);
+    }
+
+    .trace-big-letter {
+      color: transparent;
+      font-size: min(58vw, 240px);
+      font-weight: 900;
+      inset: 0;
+      line-height: 1.1;
+      opacity: 0.72;
+      paint-order: stroke fill;
+      pointer-events: none;
+      position: absolute;
+      -webkit-text-stroke: 8px rgba(95, 80, 108, 0.34);
+      text-stroke: 8px rgba(95, 80, 108, 0.34);
+    }
+
+    .trace-dot {
+      align-items: center;
+      background: #b8b1bc;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 3px 7px rgba(94, 68, 111, 0.16);
+      color: #fff;
+      display: flex;
+      font-size: 0.8rem;
+      font-weight: 900;
+      height: 22px;
+      justify-content: center;
+      pointer-events: none;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 22px;
+      z-index: 2;
+    }
+
+    .trace-dot.next {
+      background: #ffcf24;
+      transform: translate(-50%, -50%) scale(1.22);
+    }
+
+    .trace-dot.done {
+      background: #7ddd2f;
+    }
+
+    .trace-dot.goal {
+      background: #56c8ff;
+    }
+
+    .trace-line-layer {
+      inset: 0;
+      pointer-events: none;
+      position: absolute;
+      z-index: 1;
+    }
+
+    .trace-line-layer path {
+      fill: none;
+      stroke: #4b3d55;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 18;
+    }
+
+    .trace-word {
+      display: none;
     }
 
     .trace-close {
@@ -678,8 +793,17 @@
       <p class="learning-help" id="foodHelp">たべものの もじを なぞれたら あげられるよ。</p>
       <div class="food-grid" id="foodGrid"></div>
       <div class="trace-box" id="traceBox">
-        <p class="learning-help" id="traceHelp">ゆびで もじを じゅんばんに なぞってね。</p>
-        <div class="trace-word" id="traceWord" aria-label="もじをなぞる"></div>
+        <div class="trace-status">
+          <span class="trace-badge" id="traceCurrent">1</span>
+          <span class="trace-count" id="traceCount">/ 1</span>
+        </div>
+        <p class="learning-help" id="traceHelp">ゆびで もじを なぞってね。</p>
+        <div class="trace-board" id="traceBoard" aria-label="もじをなぞる">
+          <div class="trace-big-letter" id="traceBigLetter">あ</div>
+          <svg class="trace-line-layer" id="traceLineLayer" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+          <div id="traceDots"></div>
+        </div>
+        <div class="trace-word" id="traceWord" aria-hidden="true"></div>
         <div class="trace-progress"><div class="trace-progress-fill" id="traceProgress"></div></div>
       </div>
       <button type="button" class="trace-close" id="foodClose">やめる</button>
@@ -789,6 +913,12 @@
       traceBox: document.querySelector("#traceBox"),
       traceWord: document.querySelector("#traceWord"),
       traceHelp: document.querySelector("#traceHelp"),
+      traceBoard: document.querySelector("#traceBoard"),
+      traceBigLetter: document.querySelector("#traceBigLetter"),
+      traceLineLayer: document.querySelector("#traceLineLayer"),
+      traceDots: document.querySelector("#traceDots"),
+      traceCurrent: document.querySelector("#traceCurrent"),
+      traceCount: document.querySelector("#traceCount"),
       traceProgress: document.querySelector("#traceProgress"),
       foodClose: document.querySelector("#foodClose")
     };
@@ -800,8 +930,10 @@
     ];
 
     let traceTarget = null;
-    let traceIndex = 0;
+    let traceLetterIndex = 0;
+    let tracePointIndex = 0;
     let isTracing = false;
+    let currentPath = null;
     let state = loadState();
 
     function clamp(value) {
@@ -923,12 +1055,15 @@
     function openFoodMenu() {
       elements.foodPanel.classList.add("is-open");
       elements.traceBox.classList.remove("is-open");
+      elements.foodGrid.classList.remove("is-hidden");
       elements.foodTitle.textContent = "どれを あげる？";
       elements.foodHelp.textContent = "たべものの もじを なぞれたら あげられるよ。";
       elements.traceProgress.style.width = "0%";
       traceTarget = null;
-      traceIndex = 0;
+      traceLetterIndex = 0;
+      tracePointIndex = 0;
       isTracing = false;
+      currentPath = null;
       renderFoodOptions();
     }
 
@@ -955,44 +1090,124 @@
 
     function startTrace(food) {
       traceTarget = food;
-      traceIndex = 0;
+      traceLetterIndex = 0;
+      tracePointIndex = 0;
       isTracing = false;
+      currentPath = null;
       elements.foodTitle.textContent = `${food.name}を なぞろう`;
       elements.foodHelp.textContent = "ゆっくりで だいじょうぶ。ひとつずつ なぞってね。";
+      elements.foodGrid.classList.add("is-hidden");
       elements.traceBox.classList.add("is-open");
-      elements.traceHelp.textContent = `ゆびで「${food.traceWord}」を じゅんばんに なぞってね。`;
-      elements.traceWord.setAttribute("aria-label", `${food.traceWord}をなぞる`);
       elements.traceWord.innerHTML = "";
       elements.traceProgress.style.width = "0%";
+      showTraceLetter();
+    }
 
-      [...food.traceWord].forEach((letter, index) => {
-        const span = document.createElement("span");
-        span.className = "trace-letter";
-        span.textContent = letter;
-        span.dataset.index = index;
-        elements.traceWord.appendChild(span);
+    function getTracePoints(letter) {
+      const maps = {
+        "お": [[26, 32], [55, 28], [48, 50], [34, 62], [50, 72], [65, 58], [70, 36]],
+        "に": [[32, 28], [28, 72], [48, 34], [70, 34], [50, 66], [72, 66]],
+        "ぎ": [[28, 28], [70, 25], [38, 43], [74, 40], [52, 55], [46, 76]],
+        "り": [[38, 26], [35, 58], [62, 24], [64, 48], [52, 76]],
+        "ん": [[30, 72], [42, 46], [54, 28], [58, 58], [72, 64]],
+        "ご": [[30, 35], [70, 35], [38, 66], [68, 66]],
+        "チ": [[28, 28], [72, 24], [50, 26], [50, 74], [34, 48], [74, 48]],
+        "ョ": [[36, 40], [66, 40], [66, 62], [38, 62]],
+        "コ": [[32, 34], [70, 34], [70, 66], [32, 66]],
+        "レ": [[38, 28], [38, 72], [68, 54]],
+        "ー": [[28, 50], [72, 50]],
+        "ト": [[38, 24], [38, 76], [40, 42], [72, 60]]
+      };
+
+      return maps[letter] || [[30, 30], [70, 30], [50, 52], [32, 72], [70, 72]];
+    }
+
+    function showTraceLetter() {
+      const letters = [...traceTarget.traceWord];
+      const letter = letters[traceLetterIndex];
+      const points = getTracePoints(letter);
+      tracePointIndex = 0;
+      currentPath = null;
+      elements.traceBigLetter.textContent = letter;
+      elements.traceCurrent.textContent = traceLetterIndex + 1;
+      elements.traceCount.textContent = `/ ${letters.length}`;
+      elements.traceHelp.textContent = `「${letter}」を なぞってね。`;
+      elements.traceBoard.setAttribute("aria-label", `${letter}をなぞる`);
+      elements.traceLineLayer.innerHTML = "";
+      elements.traceDots.innerHTML = "";
+
+      points.forEach(([x, y], index) => {
+        const dot = document.createElement("div");
+        dot.className = "trace-dot";
+        if (index === 0) dot.classList.add("next");
+        if (index === points.length - 1) dot.classList.add("goal");
+        dot.style.left = `${x}%`;
+        dot.style.top = `${y}%`;
+        dot.textContent = index === 0 ? "1" : "";
+        elements.traceDots.appendChild(dot);
       });
+
+      updateTraceProgress();
     }
 
     function handleTracePoint(clientX, clientY) {
       if (!traceTarget) return;
-      const target = document.elementFromPoint(clientX, clientY);
-      const letter = target && target.closest(".trace-letter");
-      if (!letter) return;
+      const points = getTracePoints([...traceTarget.traceWord][traceLetterIndex]);
+      const boardRect = elements.traceBoard.getBoundingClientRect();
+      const x = ((clientX - boardRect.left) / boardRect.width) * 100;
+      const y = ((clientY - boardRect.top) / boardRect.height) * 100;
+      const [targetX, targetY] = points[tracePointIndex];
+      const distance = Math.hypot(x - targetX, y - targetY);
 
-      const index = Number(letter.dataset.index);
-      if (index !== traceIndex) return;
+      appendTraceLine(x, y);
 
-      letter.classList.add("done");
-      traceIndex += 1;
-      elements.traceProgress.style.width = `${(traceIndex / traceTarget.traceWord.length) * 100}%`;
+      if (distance > 12) return;
 
-      if (traceIndex >= traceTarget.traceWord.length) {
+      const dots = [...elements.traceDots.querySelectorAll(".trace-dot")];
+      dots[tracePointIndex].classList.remove("next");
+      dots[tracePointIndex].classList.add("done");
+      tracePointIndex += 1;
+
+      if (tracePointIndex < points.length) {
+        dots[tracePointIndex].classList.add("next");
+        dots[tracePointIndex].textContent = String(tracePointIndex + 1);
+        return;
+      }
+
+      finishTraceLetter();
+    }
+
+    function appendTraceLine(x, y) {
+      if (!currentPath) {
+        currentPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        currentPath.setAttribute("d", `M ${x} ${y}`);
+        elements.traceLineLayer.appendChild(currentPath);
+        return;
+      }
+
+      currentPath.setAttribute("d", `${currentPath.getAttribute("d")} L ${x} ${y}`);
+    }
+
+    function finishTraceLetter() {
+      const letters = [...traceTarget.traceWord];
+      traceLetterIndex += 1;
+      updateTraceProgress();
+
+      if (traceLetterIndex >= letters.length) {
         const food = traceTarget;
         traceTarget = null;
         isTracing = false;
-        setTimeout(() => giveFood(food), 260);
+        setTimeout(() => giveFood(food), 360);
+        return;
       }
+
+      setTimeout(showTraceLetter, 360);
+    }
+
+    function updateTraceProgress() {
+      if (!traceTarget) return;
+      const total = [...traceTarget.traceWord].length;
+      elements.traceProgress.style.width = `${(traceLetterIndex / total) * 100}%`;
     }
 
     function giveFood(food) {
@@ -1039,20 +1254,20 @@
         closeFoodMenu();
       }
     });
-    elements.traceWord.addEventListener("pointerdown", (event) => {
+    elements.traceBoard.addEventListener("pointerdown", (event) => {
       isTracing = true;
-      elements.traceWord.setPointerCapture(event.pointerId);
+      elements.traceBoard.setPointerCapture(event.pointerId);
       handleTracePoint(event.clientX, event.clientY);
     });
-    elements.traceWord.addEventListener("pointermove", (event) => {
+    elements.traceBoard.addEventListener("pointermove", (event) => {
       if (isTracing) {
         handleTracePoint(event.clientX, event.clientY);
       }
     });
-    elements.traceWord.addEventListener("pointerup", () => {
+    elements.traceBoard.addEventListener("pointerup", () => {
       isTracing = false;
     });
-    elements.traceWord.addEventListener("pointercancel", () => {
+    elements.traceBoard.addEventListener("pointercancel", () => {
       isTracing = false;
     });
 
