@@ -1,4 +1,4 @@
-const CACHE_NAME = "meimeicchi-v4";
+const CACHE_NAME = "meimeicchi-v9";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -31,22 +31,40 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then((cached) => {
-        if (cached) {
-          return cached;
-        }
+  const isPageRequest = event.request.mode === "navigate"
+    || event.request.destination === "document"
+    || new URL(event.request.url).pathname.endsWith("/");
 
-        return fetch(event.request)
-          .then((response) => {
-            if (response.ok) {
-              const copy = response.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-            }
-            return response;
-          })
-          .catch(() => caches.match("./index.html"));
-      })
-  );
+  event.respondWith(isPageRequest ? networkFirst(event.request) : cacheFirst(event.request));
 });
+
+function networkFirst(request) {
+  return fetch(request)
+    .then((response) => {
+      if (response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+      }
+      return response;
+    })
+    .catch(() => caches.match(request).then((cached) => cached || caches.match("./index.html")));
+}
+
+function cacheFirst(request) {
+  return caches.match(request)
+    .then((cached) => {
+      if (cached) {
+        return cached;
+      }
+
+      return fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match("./index.html"));
+    });
+}
