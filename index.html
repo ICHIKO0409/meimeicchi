@@ -587,7 +587,21 @@
     }
 
     .trace-big-letter {
-      display: none;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.12);
+      display: flex;
+      font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "MS Mincho", serif;
+      font-size: min(58vw, 240px);
+      font-weight: 700;
+      inset: 0;
+      justify-content: center;
+      line-height: 1;
+      paint-order: stroke fill;
+      pointer-events: none;
+      position: absolute;
+      -webkit-text-stroke: 8px rgba(82, 70, 92, 0.46);
+      text-stroke: 8px rgba(82, 70, 92, 0.46);
+      z-index: 1;
     }
 
     .trace-dot {
@@ -623,24 +637,12 @@
     }
 
     .guide-stroke {
-      stroke: rgba(95, 80, 108, 0.34);
-      stroke-width: 13;
-    }
-
-    .guide-stroke.is-current {
-      stroke: rgba(95, 80, 108, 0.52);
-      stroke-width: 15;
-    }
-
-    .guide-stroke.is-done {
-      stroke: rgba(95, 80, 108, 0.18);
-      stroke-width: 13;
+      display: none;
     }
 
     .drawn-stroke {
       stroke: #3f3449;
       stroke-width: 15;
-      transition: stroke-dashoffset 80ms linear;
     }
 
     .trace-word {
@@ -928,10 +930,10 @@
     let traceTarget = null;
     let traceLetterIndex = 0;
     let traceStrokeIndex = 0;
-    let strokeProgress = 0;
     let isTracing = false;
-    let currentGuidePath = null;
     let currentDrawPath = null;
+    let traceMaskCanvas = document.createElement("canvas");
+    let traceMaskContext = traceMaskCanvas.getContext("2d", { willReadFrequently: true });
     let state = loadState();
 
     function clamp(value) {
@@ -1060,9 +1062,7 @@
       traceTarget = null;
       traceLetterIndex = 0;
       traceStrokeIndex = 0;
-      strokeProgress = 0;
       isTracing = false;
-      currentGuidePath = null;
       currentDrawPath = null;
       renderFoodOptions();
     }
@@ -1092,9 +1092,7 @@
       traceTarget = food;
       traceLetterIndex = 0;
       traceStrokeIndex = 0;
-      strokeProgress = 0;
       isTracing = false;
-      currentGuidePath = null;
       currentDrawPath = null;
       elements.foodTitle.textContent = `${food.name}を なぞろう`;
       elements.foodHelp.textContent = "ゆっくりで だいじょうぶ。ひとつずつ なぞってね。";
@@ -1105,180 +1103,133 @@
       showTraceLetter();
     }
 
-    function getTraceStrokes(letter) {
+    function getStrokeStartPoints(letter) {
       const maps = {
-        "お": [
-          "M28 32 C42 33 56 33 70 31",
-          "M48 21 C49 35 48 47 42 57 C35 69 42 78 55 75 C65 72 72 62 70 51",
-          "M62 28 C72 34 78 43 77 55"
-        ],
-        "に": [
-          "M31 24 C27 40 26 58 30 73",
-          "M50 35 C58 34 66 34 74 35",
-          "M48 66 C57 68 67 68 76 66"
-        ],
-        "ぎ": [
-          "M27 30 C40 31 55 28 69 25",
-          "M31 43 C45 44 60 42 75 39",
-          "M47 23 C52 39 56 52 51 65 C48 73 52 79 60 78",
-          "M72 22 L78 29",
-          "M81 33 L87 40"
-        ],
-        "り": [
-          "M38 24 C36 38 35 49 37 60",
-          "M64 23 C66 43 61 62 50 76"
-        ],
-        "ん": [
-          "M30 73 C38 57 45 42 55 29 C58 47 56 62 64 65 C68 67 73 64 77 58"
-        ],
-        "ご": [
-          "M30 36 C43 37 56 37 69 35",
-          "M38 66 C50 69 64 69 75 65",
-          "M72 25 L78 32",
-          "M82 36 L88 43"
-        ],
-        "チ": [
-          "M60 23 C52 28 43 31 34 32",
-          "M29 48 C44 49 60 49 75 47",
-          "M53 36 C52 54 48 68 38 79"
-        ],
-        "ョ": [
-          "M36 40 C46 39 57 39 67 40 L66 64 C57 64 47 64 38 64"
-        ],
-        "コ": [
-          "M32 34 C45 33 58 33 71 34 L70 66 C58 66 45 66 32 66"
-        ],
-        "レ": [
-          "M38 26 C38 43 38 59 37 73 C50 68 61 62 70 54"
-        ],
-        "ー": [
-          "M28 50 C43 50 58 50 73 50"
-        ],
-        "ト": [
-          "M38 24 C38 41 38 59 38 76",
-          "M40 42 C52 47 63 53 73 60"
-        ]
+        "お": [[30, 34], [49, 22], [64, 30]],
+        "に": [[32, 24], [50, 35], [48, 66]],
+        "ぎ": [[27, 30], [31, 43], [47, 23], [72, 22], [81, 33]],
+        "り": [[38, 24], [64, 23]],
+        "ん": [[30, 73]],
+        "ご": [[30, 36], [38, 66], [72, 25], [82, 36]],
+        "チ": [[60, 23], [29, 48], [53, 36]],
+        "ョ": [[36, 40]],
+        "コ": [[32, 34], [32, 66]],
+        "レ": [[38, 26]],
+        "ー": [[28, 50]],
+        "ト": [[38, 24], [40, 42]]
       };
 
-      return maps[letter] || ["M30 30 C48 28 62 38 50 52 C40 64 52 75 70 72"];
+      return maps[letter] || [[32, 30]];
     }
 
     function showTraceLetter() {
       const letters = [...traceTarget.traceWord];
       const letter = letters[traceLetterIndex];
       traceStrokeIndex = 0;
-      strokeProgress = 0;
       isTracing = false;
-      currentGuidePath = null;
       currentDrawPath = null;
       elements.traceBigLetter.textContent = letter;
       elements.traceCurrent.textContent = traceLetterIndex + 1;
       elements.traceCount.textContent = `/ ${letters.length}`;
-      elements.traceHelp.textContent = `グレーの「${letter}」を なぞってね。`;
+      elements.traceHelp.textContent = `明朝体の「${letter}」の 1かくめを なぞってね。`;
       elements.traceBoard.setAttribute("aria-label", `${letter}をなぞる`);
       renderTraceGuide();
+      requestAnimationFrame(() => buildTraceMask(letter));
       updateTraceProgress();
     }
 
     function renderTraceGuide() {
       const letter = [...traceTarget.traceWord][traceLetterIndex];
-      const strokes = getTraceStrokes(letter);
+      const starts = getStrokeStartPoints(letter);
       elements.traceLineLayer.innerHTML = "";
       elements.traceDots.innerHTML = "";
-      currentGuidePath = null;
       currentDrawPath = null;
-      strokeProgress = 0;
 
-      strokes.forEach((stroke, index) => {
-        const guide = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        guide.setAttribute("d", stroke);
-        guide.classList.add("guide-stroke");
-        if (index < traceStrokeIndex) guide.classList.add("is-done");
-        if (index === traceStrokeIndex) guide.classList.add("is-current");
-        elements.traceLineLayer.appendChild(guide);
-
-        if (index < traceStrokeIndex) {
-          const done = document.createElementNS("http://www.w3.org/2000/svg", "path");
-          done.setAttribute("d", stroke);
-          done.classList.add("drawn-stroke");
-          elements.traceLineLayer.appendChild(done);
-        }
-
-        if (index === traceStrokeIndex) {
-          currentGuidePath = guide;
-          currentDrawPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-          currentDrawPath.setAttribute("d", stroke);
-          currentDrawPath.classList.add("drawn-stroke");
-          elements.traceLineLayer.appendChild(currentDrawPath);
-          const total = currentDrawPath.getTotalLength();
-          currentDrawPath.style.strokeDasharray = total;
-          currentDrawPath.style.strokeDashoffset = total;
-        }
+      starts.forEach(([x, y], index) => {
+        const dot = document.createElement("div");
+        dot.className = "trace-dot";
+        dot.style.left = `${x}%`;
+        dot.style.top = `${y}%`;
+        dot.textContent = index + 1;
+        elements.traceDots.appendChild(dot);
       });
+    }
 
-      const start = currentGuidePath.getPointAtLength(0);
-      const dot = document.createElement("div");
-      dot.className = "trace-dot";
-      dot.style.left = `${start.x}%`;
-      dot.style.top = `${start.y}%`;
-      dot.textContent = traceStrokeIndex + 1;
-      elements.traceDots.appendChild(dot);
+    function buildTraceMask(letter) {
+      const boardRect = elements.traceBoard.getBoundingClientRect();
+      const width = Math.max(1, Math.round(boardRect.width));
+      const height = Math.max(1, Math.round(boardRect.height));
+      traceMaskCanvas.width = width;
+      traceMaskCanvas.height = height;
+      traceMaskContext.clearRect(0, 0, width, height);
+      traceMaskContext.fillStyle = "#000";
+      traceMaskContext.textAlign = "center";
+      traceMaskContext.textBaseline = "middle";
+      traceMaskContext.lineJoin = "round";
+      traceMaskContext.lineCap = "round";
+      traceMaskContext.font = `700 ${Math.round(Math.min(width * 0.76, 240))}px "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "MS Mincho", serif`;
+      traceMaskContext.lineWidth = Math.max(18, width * 0.055);
+      traceMaskContext.strokeText(letter, width / 2, height / 2 + height * 0.02);
     }
 
     function handleTracePoint(clientX, clientY) {
-      if (!traceTarget || !currentGuidePath || !currentDrawPath) return;
-      const point = boardPoint(clientX, clientY);
-      const nearest = nearestPointOnPath(currentGuidePath, point.x, point.y);
-      const total = currentGuidePath.getTotalLength();
+      if (!traceTarget) return;
+      const pixel = boardPixel(clientX, clientY);
+      if (!isPointOnGlyph(pixel.x, pixel.y)) return;
 
-      if (nearest.distance > 8.5) return;
-      if (nearest.length + total * 0.08 < strokeProgress) return;
-
-      strokeProgress = Math.max(strokeProgress, nearest.length);
-      currentDrawPath.style.strokeDashoffset = Math.max(0, total - strokeProgress);
-
-      if (strokeProgress >= total * 0.92) {
-        currentDrawPath.style.strokeDashoffset = 0;
-        finishTraceStroke();
-      }
+      appendTraceLine(pixel.percentX, pixel.percentY);
     }
 
-    function boardPoint(clientX, clientY) {
+    function boardPixel(clientX, clientY) {
       const rect = elements.traceBoard.getBoundingClientRect();
+      const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+      const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
       return {
-        x: ((clientX - rect.left) / rect.width) * 100,
-        y: ((clientY - rect.top) / rect.height) * 100
+        x: Math.round((x / rect.width) * traceMaskCanvas.width),
+        y: Math.round((y / rect.height) * traceMaskCanvas.height),
+        percentX: (x / rect.width) * 100,
+        percentY: (y / rect.height) * 100
       };
     }
 
-    function nearestPointOnPath(path, x, y) {
-      const total = path.getTotalLength();
-      let best = { distance: Infinity, length: 0 };
-      const samples = 72;
-
-      for (let i = 0; i <= samples; i += 1) {
-        const length = (total * i) / samples;
-        const point = path.getPointAtLength(length);
-        const distance = Math.hypot(point.x - x, point.y - y);
-        if (distance < best.distance) {
-          best = { distance, length };
+    function isPointOnGlyph(x, y) {
+      const radius = 8;
+      for (let offsetY = -radius; offsetY <= radius; offsetY += 4) {
+        for (let offsetX = -radius; offsetX <= radius; offsetX += 4) {
+          const sampleX = Math.max(0, Math.min(traceMaskCanvas.width - 1, x + offsetX));
+          const sampleY = Math.max(0, Math.min(traceMaskCanvas.height - 1, y + offsetY));
+          const alpha = traceMaskContext.getImageData(sampleX, sampleY, 1, 1).data[3];
+          if (alpha > 20) return true;
         }
       }
 
-      return best;
+      return false;
+    }
+
+    function appendTraceLine(x, y) {
+      if (!currentDrawPath) {
+        currentDrawPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        currentDrawPath.classList.add("drawn-stroke");
+        currentDrawPath.setAttribute("d", `M ${x} ${y}`);
+        elements.traceLineLayer.appendChild(currentDrawPath);
+        return;
+      }
+
+      currentDrawPath.setAttribute("d", `${currentDrawPath.getAttribute("d")} L ${x} ${y}`);
     }
 
     function finishTraceStroke() {
+      const starts = getStrokeStartPoints([...traceTarget.traceWord][traceLetterIndex]);
       traceStrokeIndex += 1;
-      strokeProgress = 0;
       isTracing = false;
+      currentDrawPath = null;
 
-      const strokes = getTraceStrokes([...traceTarget.traceWord][traceLetterIndex]);
-      if (traceStrokeIndex >= strokes.length) {
+      if (traceStrokeIndex >= starts.length) {
         finishTraceLetter();
         return;
       }
 
+      elements.traceHelp.textContent = `明朝体の「${[...traceTarget.traceWord][traceLetterIndex]}」の ${traceStrokeIndex + 1}かくめを なぞってね。`;
       renderTraceGuide();
     }
 
@@ -1359,6 +1310,11 @@
       }
     });
     elements.traceBoard.addEventListener("pointerup", () => {
+      if (isTracing && currentDrawPath && currentDrawPath.getTotalLength() > 10) {
+        finishTraceStroke();
+        return;
+      }
+
       isTracing = false;
     });
     elements.traceBoard.addEventListener("pointercancel", () => {
