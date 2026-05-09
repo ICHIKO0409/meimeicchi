@@ -1,4 +1,4 @@
-const CACHE_NAME = "meimeicchi-v11";
+const CACHE_NAME = "meimeicchi-v13";
 const APP_FILES = [
   "./",
   "./index.html",
